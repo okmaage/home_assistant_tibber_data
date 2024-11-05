@@ -48,7 +48,7 @@ async def get_historic_data(
     )
 
     if not (data := await tibber_controller.execute(query)):
-        print("Could not find the data.")
+        _LOGGER.error("Could not find the data.")
         return None
     
     pageInfo = data["viewer"]["home"]["consumption"]["pageInfo"]
