@@ -3,6 +3,7 @@ import base64
 import datetime
 import json
 import logging
+from datetime import timedelta
 
 import tibber
 
@@ -12,20 +13,35 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def get_historic_data(
-    tibber_home: tibber.TibberHome, tibber_controller: tibber.Tibber
+    tibber_home: tibber.TibberHome, tibber_controller: tibber.Tibber, cursor=None
 ):
     """Get historic data."""
     # pylint: disable=consider-using-f-string
+
+    if not cursor:
+        cursor = base64.b64encode( (datetime.datetime.now() - timedelta(hours=9600)).isoformat().encode("ascii")).decode()
+
     query = """
             {{
               viewer {{
                 home(id: "{}") {{
-                  consumption(resolution: HOURLY, last: 9600, before:"{}") {{
+                  consumption(resolution: HOURLY, first: 9600, after:"{}") {{
                     nodes {{
                       consumption
                       cost
                       from
                       unitPrice
+                    }}
+                    pageInfo {{
+                      endCursor
+                      hasNextPage
+                      hasPreviousPage
+                      startCursor
+                      count
+                      currency
+                      totalCost
+                      energyCost
+                      totalConsumption
                     }}
                   }}
                 }}
@@ -33,16 +49,31 @@ async def get_historic_data(
             }}
       """.format(
         tibber_home.home_id,
-        base64.b64encode(datetime.datetime.now().isoformat().encode("ascii")).decode(),
+        cursor,
     )
 
     if not (data := await tibber_controller.execute(query)):
-        _LOGGER.error("Could not find the data.")
+        print("Could not find the data.")
         return None
-    data = data["viewer"]["home"]["consumption"]
+    
+    pageInfo = data["viewer"]["home"]["consumption"]["pageInfo"]
+    data = data["viewer"]["home"]["consumption"]["nodes"]
+
     if data is None:
         return None
-    return data["nodes"]
+    else:
+
+      hasNextPage = pageInfo["hasNextPage"]
+      endCursor = pageInfo["endCursor"]
+
+      endCursorDate = datetime.datetime.fromisoformat(base64.b64decode( endCursor).decode())
+      newEndCursor = base64.b64encode( (endCursorDate + timedelta(hours=1)).isoformat().encode("ascii")).decode()
+      
+      if(hasNextPage):
+         nyData = await get_historic_data(tibber_home, tibber_controller, newEndCursor)
+         data.extend(nyData)
+    
+    return data
 
 
 async def get_historic_production_data(
