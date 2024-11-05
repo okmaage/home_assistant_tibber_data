@@ -37,11 +37,6 @@ async def get_historic_data(
                       hasNextPage
                       hasPreviousPage
                       startCursor
-                      count
-                      currency
-                      totalCost
-                      energyCost
-                      totalConsumption
                     }}
                   }}
                 }}
@@ -66,6 +61,7 @@ async def get_historic_data(
       hasNextPage = pageInfo["hasNextPage"]
       endCursor = pageInfo["endCursor"]
 
+      #Needs to update endcursor with one hour to avoid duplicate entries
       endCursorDate = datetime.datetime.fromisoformat(base64.b64decode( endCursor).decode())
       newEndCursor = base64.b64encode( (endCursorDate + timedelta(hours=1)).isoformat().encode("ascii")).decode()
       
