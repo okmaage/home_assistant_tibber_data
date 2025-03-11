@@ -226,29 +226,30 @@ class TibberDataCoordinator(DataUpdateCoordinator):
             data[f"charger_{charger}_is_charging"] = charger_data["meta_data"]["state"][
                 "isCharging"
             ]
-            for setting in charger_data["meta_data"]["settingsScreen"]["settings"]:
-                key = setting["key"]
-                val = setting["value"]
-                if key == "schedule.isEnabled":
-                    data[f"charger_{charger}_sc_enabled"] = val.lower() == "on"
-                elif key == "departureTimes.sunday":
-                    data[f"charger_{charger}_sunday_departure_time"] = val
-                elif key == "departureTimes.monday":
-                    data[f"charger_{charger}_monday_departure_time"] = val
-                elif key == "departureTimes.tuesday":
-                    data[f"charger_{charger}_tuesday_departure_time"] = val
-                elif key == "departureTimes.wednesday":
-                    data[f"charger_{charger}_wednesday_departure_time"] = val
-                elif key == "departureTimes.thursday":
-                    data[f"charger_{charger}_thursday_departure_time"] = val
-                elif key == "departureTimes.friday":
-                    data[f"charger_{charger}_friday_departure_time"] = val
-                elif key == "departureTimes.saturday":
-                    data[f"charger_{charger}_saturday_departure_time"] = val
-                elif key == "maxCircuitPower":
-                    data[f"charger_{charger}_max_circuit_power"] = val
-                elif key == "maxCurrentCharger":
-                    data[f"charger_{charger}_max_current_charger"] = val
+            if(charger_data["meta_data"]["settingsScreen"]["settings"]):
+                for setting in charger_data["meta_data"]["settingsScreen"]["settings"]:
+                    key = setting["key"]
+                    val = setting["value"]
+                    if key == "schedule.isEnabled":
+                        data[f"charger_{charger}_sc_enabled"] = val.lower() == "on"
+                    elif key == "departureTimes.sunday":
+                        data[f"charger_{charger}_sunday_departure_time"] = val
+                    elif key == "departureTimes.monday":
+                        data[f"charger_{charger}_monday_departure_time"] = val
+                    elif key == "departureTimes.tuesday":
+                        data[f"charger_{charger}_tuesday_departure_time"] = val
+                    elif key == "departureTimes.wednesday":
+                        data[f"charger_{charger}_wednesday_departure_time"] = val
+                    elif key == "departureTimes.thursday":
+                        data[f"charger_{charger}_thursday_departure_time"] = val
+                    elif key == "departureTimes.friday":
+                        data[f"charger_{charger}_friday_departure_time"] = val
+                    elif key == "departureTimes.saturday":
+                        data[f"charger_{charger}_saturday_departure_time"] = val
+                    elif key == "maxCircuitPower":
+                        data[f"charger_{charger}_max_circuit_power"] = val
+                    elif key == "maxCurrentCharger":
+                        data[f"charger_{charger}_max_current_charger"] = val
 
             self.charger_name[charger] = _name = charger_data["meta_data"]["name"]
             data[f"charger_{charger}_consumption_month"] = charging_consumption_month
@@ -561,4 +562,4 @@ class TibberDataCoordinator(DataUpdateCoordinator):
 def calculate_subsidy(price):
     """Calculate subsidy. Norway."""
     vat_factor = 1.25
-    return max(0, 0.9 * (price - 0.73 * vat_factor))
+    return max(0, 0.9 * (price - 0.75 * vat_factor))
